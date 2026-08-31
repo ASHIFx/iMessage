@@ -6,15 +6,22 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    hashedPassword:{
+        type:String,
+        required: true,
+    },
     fullname:{
         type:String,
         required: true,
-        unique: true
     },
     profilePic:{
         type:String,
-        required: true,
-        unique: true
+        default: "",
+    },
+    isVerified:{
+        type:Boolean,
+        default: false,
+        
     },
     
 }, {timestamps:true})

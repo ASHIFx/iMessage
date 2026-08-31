@@ -2,6 +2,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.CLOUDINARY_CLOUD_NAME) throw new Error("CLOUDINARY NAME is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
+if(!process.env.MONGO_URI) throw new Error("MONGO URI is not defined")
 
 export const config = {
   PORT: process.env.PORT,
