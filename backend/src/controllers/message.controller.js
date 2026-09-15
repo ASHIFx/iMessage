@@ -1,5 +1,6 @@
-import Message from "../models/message.model";
-import User from "../models/user.model";
+import { getReceiverSocketId, io } from "../config/socket.js";
+import Message from "../models/message.model.js";
+import User from "../models/user.model.js";
 
 export const getUserForSidebar = async (req, res) => {
   try {
@@ -91,6 +92,9 @@ export const sendMessage = async (req, res) => {
     await newMessage.save();
 
     const receiverSocketId = getReceiverSocketId(receiverId);
+    if(receiverSocketId){
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);

@@ -7,8 +7,8 @@ import path from 'path';
 import authRouter from "./routes/auth.route.js";
 import messageRouter from "./routes/message.route.js";
 import job from "./config/cron.js";
+import { app, server } from "./config/socket.js";
 
-const app = express();
 const PORT = config.PORT;
 const FRONTEND_URL = config.FRONTEND_URL;
 const publicDir = path.join(process.cwd(), "public");
@@ -27,12 +27,12 @@ app.use("/api/messages", messageRouter);
 if(fs.existsSync(publicDir)){
     app.use(express.static(publicDir))
 
-    app.get("/{*any}", (res,res,next) => {
-        res.sendFile(path.join(publicDir, "index.html")), (err) => next(err);
+    app.get("/{*any}", (req, res, next) => {
+      res.sendFile(path.join(publicDir, "index.html"), (err) => next(err));
     })
 }
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   connectDB();
   console.log(`Server is running on ${PORT}`);
   if (process.env.NODE_ENV === "production") job.start();
