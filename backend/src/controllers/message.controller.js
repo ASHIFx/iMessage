@@ -1,10 +1,11 @@
 import { getReceiverSocketId, io } from "../config/socket.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import { hasCloudinaryConfig, uploadChatMedia } from "../config/cloudinary.js";
 
 export const getUserForSidebar = async (req, res) => {
   try {
-    const loggedInUserId = res.user._id;
+    const loggedInUserId = req.user._id;
     const filteredUsers = await User.find({
       _id: { $ne: loggedInUserId },
     }).select("-hashedPassword");

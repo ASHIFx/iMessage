@@ -2,18 +2,20 @@ import express from "express";
 import { config } from "./config/config.js";
 import connectDB from "./config/db.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import authRouter from "./routes/auth.route.js";
 import messageRouter from "./routes/message.route.js";
 import job from "./config/cron.js";
 import { app, server } from "./config/socket.js";
 
 const PORT = config.PORT;
-const FRONTEND_URL = config.FRONTEND_URL;
-const publicDir = path.join(process.cwd(), "public");
+const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public");
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ origin: config.FRONTEND_URL, credentials: true }));
 
 app.get("/health", (req, res) => {

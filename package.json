@@ -1,0 +1,13 @@
+{
+  "name": "imessage-monolith",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix frontend run build && node -e \"const fs=require('fs'); fs.rmSync('backend/public',{recursive:true,force:true}); fs.cpSync('frontend/dist','backend/public',{recursive:true});\" && npm --prefix backend run build",
+    "start": "npm --prefix backend run start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

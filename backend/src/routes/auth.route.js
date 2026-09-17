@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as controller from "../controllers/auth.controller.js";
+import { protectRoute } from "../middleware/auth.middleware.js";
 
 const authRouter = Router();
 
@@ -7,6 +8,7 @@ authRouter.post("/register", controller.register);
 authRouter.post("/sendotp", controller.sendOtp);
 authRouter.post("/verify-email", controller.verifyOtp);
 authRouter.post("/login", controller.login);
+authRouter.get("/me", protectRoute, controller.me);
 authRouter.post("/logout", controller.logout);
 authRouter.post("/refreshToken", controller.refreshToken);
 
