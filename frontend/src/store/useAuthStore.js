@@ -9,8 +9,8 @@ import {
   store,
 } from "./store.js";
 
-const facade = (state, dispatch) => ({
-  ...state.auth,
+const facade = (authState, dispatch) => ({
+  ...authState,
   checkAuth: () => dispatch(checkAuth()),
   clearAuth: () => dispatch(clearAuth()),
   connectSocket: (user) => dispatch(connectSocket(user)),
@@ -21,8 +21,8 @@ const facade = (state, dispatch) => ({
 export const useAuthStore = (selector = (state) => state) =>
   selector(
     facade(
-      useSelector((state) => state),
+      useSelector((state) => state.auth),
       useDispatch(),
     ),
   );
-useAuthStore.getState = () => facade(store.getState(), store.dispatch);
+useAuthStore.getState = () => facade(store.getState().auth, store.dispatch);
