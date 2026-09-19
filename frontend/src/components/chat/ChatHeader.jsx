@@ -25,6 +25,7 @@ export function ChatHeader() {
           variant="ghost"
           size="sm"
           isIconOnly
+          aria-label="Back to conversations"
           className="shrink-0"
           onPress={() => setActiveConversationId(null)}
         >
@@ -81,6 +82,7 @@ export function ChatHeader() {
           size="sm"
           isIconOnly
           className="shrink-0"
+          aria-label={isSoundEnabled ? "Mute typing sounds" : "Unmute typing sounds"}
           aria-pressed={isSoundEnabled}
           onPress={() => setSoundEnabled(!isSoundEnabled)}
         >

@@ -67,6 +67,7 @@ export function ChatComposer() {
           variant="ghost"
           isIconOnly
           isDisabled={isSendingMedia}
+          aria-label="Attach image or video"
           className="size-9 shrink-0 touch-manipulation self-end text-accent"
           onPress={() => mediaInputRef.current?.click()}
         >
@@ -91,6 +92,7 @@ export function ChatComposer() {
         <Button
           variant="primary"
           isIconOnly
+          aria-label="Send message"
           isDisabled={!composerText.trim() || isSendingMedia}
           onPress={handleSend}
         >

@@ -201,16 +201,20 @@ export const sendMessage = (payload) => async (dispatch, getState) => {
   const userId = selectedUser?._id || activeConversationId;
   if (!userId) return false;
 
+  const isMedia = typeof FormData !== "undefined" && payload instanceof FormData;
+  if (isMedia) dispatch(chatActions.setChat({ isSendingMedia: true }));
+
   try {
     const response = await axiosInstance.post(`/messages/send/${userId}`, payload);
     dispatch(chatActions.appendMessage(response.data));
     dispatch(chatActions.clearComposer());
-    // Update conversations list in background (don't await to keep UI snappy)
     dispatch(getConversations());
     return true;
   } catch (err) {
     console.error("sendMessage failed:", err?.response?.data?.message || err.message);
     return false;
+  } finally {
+    if (isMedia) dispatch(chatActions.setChat({ isSendingMedia: false }));
   }
 };
 

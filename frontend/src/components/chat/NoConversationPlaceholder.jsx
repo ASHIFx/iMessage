@@ -4,7 +4,7 @@ export function NoConversationPlaceholder() {
   return (
     <div className="flex min-h-48 flex-1 flex-col items-center justify-center gap-4 px-4 py-12 text-center sm:gap-5 sm:px-8 sm:py-16">
       <div
-        className="flex size-22 items-center justify-center rounded-3xl bg-accent-soft"
+        className="flex size-22 items-center justify-center rounded-3xl bg-accent/10"
         aria-hidden
       >
         <MessageCircleIcon className="size-10 text-accent" strokeWidth={1.25} />

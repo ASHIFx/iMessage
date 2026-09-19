@@ -1,4 +1,4 @@
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import {
   chatActions,
   getConversations,
@@ -9,8 +9,8 @@ import {
   store,
 } from "./store.js";
 
-const facade = (state, dispatch) => ({
-  ...state.chat,
+const facade = (chatState, dispatch) => ({
+  ...chatState,
   getUsers: () => dispatch(getUsers()),
   getConversations: () => dispatch(getConversations()),
   getMessages: (id) => dispatch(getMessages(id)),
@@ -21,7 +21,6 @@ const facade = (state, dispatch) => ({
     if (!socket || !userId) return;
     socket.off("newMessage");
     socket.on("newMessage", (message) => {
-      // Only append if the message belongs to the active conversation
       if (String(message.senderId) === String(userId)) {
         dispatch(chatActions.appendMessage(message));
       }
@@ -30,18 +29,15 @@ const facade = (state, dispatch) => ({
   unsubscribeFromMessages: () => getSocket()?.off("newMessage"),
 
   setActiveConversationId: (id) => {
-    // Find the user in both lists so selectedUser is always set
     const user = id
-      ? state.chat.users.find((u) => u._id === id) ||
-        state.chat.conversations.find((u) => u._id === id) ||
+      ? chatState.users.find((u) => u._id === id) ||
+        chatState.conversations.find((u) => u._id === id) ||
         null
       : null;
-
     dispatch(
       chatActions.setChat({
         activeConversationId: id,
         selectedUser: user,
-        // Don't clear messages here — getMessages thunk clears them
       }),
     );
   },
@@ -55,9 +51,8 @@ const facade = (state, dispatch) => ({
   setSoundEnabled: (value) =>
     dispatch(chatActions.setChat({ isSoundEnabled: value })),
 
-  // Sends the current composerText — store.sendMessage handles clearing
   sendTextMessage: () => {
-    const text = state.chat.composerText.trim();
+    const text = chatState.composerText.trim();
     if (!text) return Promise.resolve(false);
     return dispatch(sendMessage({ text }));
   },
@@ -69,11 +64,13 @@ const facade = (state, dispatch) => ({
   },
 });
 
-export const useChatStore = (selector = (state) => state) =>
-  selector(
-    facade(
-      useSelector((state) => state),
-      useDispatch(),
-    ),
-  );
-useChatStore.getState = () => facade(store.getState(), store.dispatch);
+// Use shallowEqual + subscribe to only chat slice — fixes the
+// "Selector returned the root state" warning from react-redux.
+export const useChatStore = (selector = (s) => s) => {
+  const chatState = useSelector((s) => s.chat, shallowEqual);
+  const dispatch = useDispatch();
+  return selector(facade(chatState, dispatch));
+};
+
+useChatStore.getState = () =>
+  facade(store.getState().chat, store.dispatch);

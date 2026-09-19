@@ -18,20 +18,21 @@ function ChatPage() {
 
   const { activeConversation, activeConversationId, isLargeScreen } = useSelectedConversation();
 
+  // Load sidebar data once on mount
   useEffect(() => {
     getUsers();
     getConversations();
-  }, [getConversations, getUsers]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Load messages & subscribe to socket when active conversation changes
   useEffect(() => {
     if (!activeConversationId) return;
 
     getMessages(activeConversationId);
     subscribeToMessages(activeConversationId);
 
-    // cleanup
     return () => unsubscribeFromMessages();
-  }, [getMessages, activeConversationId, subscribeToMessages, unsubscribeFromMessages]);
+  }, [activeConversationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden p-2 sm:p-3 md:p-8" style={frameStyle}>
