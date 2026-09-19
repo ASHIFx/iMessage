@@ -28,14 +28,17 @@ function mapUserToConversation({ user, messages, authUser, onlineUsers }) {
     videoUrl: message.video,
   }));
 
+  // Backend stores as "fullname" (lowercase), auth controller also exposes "fullName"
+  const name = user.fullName || user.fullname || user.email || "Unknown";
+
   return {
     id: user._id,
     peer: {
-      name: user.fullName,
+      name,
       subtitle: user.email,
       isOnline: onlineUsers.includes(user._id),
       avatarUrl: user.profilePic,
-      initials: getInitials(user.fullName),
+      initials: getInitials(name),
     },
     messages: mappedMessages,
   };

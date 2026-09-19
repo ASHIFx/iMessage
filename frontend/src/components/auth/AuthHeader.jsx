@@ -16,9 +16,10 @@ function AuthHeader() {
       </div>
 
       <div className="flex shrink-0 items-center gap-0.5">
-        <WallpaperPicker />
-
-        <ThemePresetPicker />
+        <div className="hidden min-[400px]:contents">
+          <WallpaperPicker />
+          <ThemePresetPicker />
+        </div>
 
         <ThemeToggle />
       </div>

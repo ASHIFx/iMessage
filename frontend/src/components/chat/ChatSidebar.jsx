@@ -8,17 +8,18 @@ import { MessageSquareIcon, UsersIcon } from "lucide-react";
 import { ConversationRow } from "./ConversationRow";
 
 function mapUserForList(user, onlineUsers) {
+  const name = user.fullName || user.fullname || user.email || "Unknown";
   return {
     conversationId: user._id,
     id: user._id,
-    name: user.fullName,
+    name,
     avatarUrl: user.profilePic,
-    initials: getInitials(user.fullName),
+    initials: getInitials(name),
     isOnline: onlineUsers.includes(user._id),
     peer: {
-      name: user.fullName,
+      name,
       avatarUrl: user.profilePic,
-      initials: getInitials(user.fullName),
+      initials: getInitials(name),
       isOnline: onlineUsers.includes(user._id),
     },
   };
@@ -27,7 +28,6 @@ function mapUserForList(user, onlineUsers) {
 function ChatSidebar() {
   const conversations = useChatStore((state) => state.conversations);
 
-  console.log(conversations);
   const users = useChatStore((state) => state.users);
 
   const searchQuery = useChatStore((state) => state.searchQuery);

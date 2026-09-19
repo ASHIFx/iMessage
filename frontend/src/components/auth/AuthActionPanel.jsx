@@ -30,7 +30,7 @@ export function AuthActionPanel() {
   const [busy, setBusy] = useState(false);
 
   return (
-    <section className="relative flex flex-1 flex-col items-stretch justify-center overflow-hidden px-5 py-12 sm:px-10 md:px-14 md:py-10 lg:px-16">
+    <section className="relative flex flex-1 flex-col items-stretch justify-center overflow-visible px-5 py-10 sm:px-10 md:overflow-hidden md:px-14 md:py-10 lg:px-16">
       <AuthCardShell>
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="relative mb-5">
