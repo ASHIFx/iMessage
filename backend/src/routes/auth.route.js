@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as controller from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
+import multer from "multer";
 
 const authRouter = Router();
 
@@ -9,6 +10,7 @@ authRouter.post("/sendotp", controller.sendOtp);
 authRouter.post("/verify-email", controller.verifyOtp);
 authRouter.post("/login", controller.login);
 authRouter.get("/me", protectRoute, controller.me);
+authRouter.patch("/profile", protectRoute, multer({ storage: multer.memoryStorage() }).single("profilePic"), controller.updateProfile);
 authRouter.post("/logout", controller.logout);
 authRouter.post("/refreshToken", controller.refreshToken);
 

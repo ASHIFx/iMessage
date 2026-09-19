@@ -5,7 +5,9 @@ import { APP_NAME, AppLogo } from "../AppLogo";
 
 import { SearchField, Tabs } from "@heroui/react";
 import { MessageSquareIcon, UsersIcon } from "lucide-react";
+import { useState } from "react";
 import { ConversationRow } from "./ConversationRow";
+import { ProfileEditor } from "./ProfileEditor";
 
 function mapUserForList(user, onlineUsers) {
   const name = user.fullName || user.fullname || user.email || "Unknown";
@@ -26,6 +28,7 @@ function mapUserForList(user, onlineUsers) {
 }
 
 function ChatSidebar() {
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
   const conversations = useChatStore((state) => state.conversations);
 
   const users = useChatStore((state) => state.users);
@@ -71,10 +74,12 @@ function ChatSidebar() {
           <p className="flex-1 truncate text-lg font-bold tracking-tight sm:text-[22px]">
             {APP_NAME}
           </p>
-          <button className="size-8 overflow-hidden rounded-full bg-accent text-xs font-semibold text-white" title="Sign out" onClick={() => logout()}>
-            {(authUser?.fullname || authUser?.username || "U").slice(0, 1).toUpperCase()}
+          <button className="size-8 overflow-hidden rounded-full bg-accent text-xs font-semibold text-white" title="Edit profile" onClick={() => setIsEditingProfile((open) => !open)}>
+            {authUser?.profilePic ? <img className="size-full object-cover" src={authUser.profilePic} alt="" /> : (authUser?.fullname || authUser?.username || "U").slice(0, 1).toUpperCase()}
           </button>
         </div>
+        {isEditingProfile ? <ProfileEditor onClose={() => setIsEditingProfile(false)} /> : null}
+        <button className="mt-2 px-1 text-left text-xs text-muted hover:text-foreground" type="button" onClick={() => logout()}>Sign out</button>
       </div>
 
       <Tabs
