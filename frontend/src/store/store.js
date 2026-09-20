@@ -63,6 +63,17 @@ const chatSlice = createSlice({
     setChat: (state, action) => { Object.assign(state, action.payload); },
     appendMessage: (state, action) => { state.messages.push(action.payload); },
     clearComposer: (state) => { state.composerText = ""; },
+    // Optimistic: remove a message by its id
+    removeMessage: (state, action) => {
+      state.messages = state.messages.filter((m) => m._id !== action.payload);
+    },
+    // Optimistic: swap a temp message with the confirmed server message
+    replaceMessage: (state, action) => {
+      const { tempId, message } = action.payload;
+      const idx = state.messages.findIndex((m) => m._id === tempId);
+      if (idx !== -1) state.messages[idx] = message;
+      else state.messages.push(message);
+    },
   },
 });
 
@@ -132,6 +143,10 @@ export const clearAuth = () => (dispatch) => {
 
 export const login = (credentials) => async (dispatch) => {
   const response = await axiosInstance.post("/auth/login", credentials);
+  if (response.data.requiresOtp) {
+    // Unverified account — return data so UI can show OTP step
+    return response.data;
+  }
   localStorage.setItem("accessToken", response.data.accessToken);
   dispatch(authActions.setAuthUser(response.data.user));
   dispatch(connectSocket(response.data.user));
@@ -208,21 +223,50 @@ export const getMessages = (userId) => async (dispatch) => {
 };
 
 export const sendMessage = (payload) => async (dispatch, getState) => {
-  const { activeConversationId, selectedUser } = getState().chat;
+  const { activeConversationId, selectedUser, composerText } = getState().chat;
+  const { authUser } = getState().auth;
   const userId = selectedUser?._id || activeConversationId;
   if (!userId) return false;
 
   const isMedia = payload && (payload.image !== undefined || payload.video !== undefined);
-  if (isMedia) dispatch(chatActions.setChat({ isSendingMedia: true }));
+  if (isMedia) {
+    dispatch(chatActions.setChat({ isSendingMedia: true }));
+  }
+
+  // ── Optimistic update (text only) ─────────────────────────────────────────
+  const tempId = `temp_${Date.now()}_${Math.random()}`;
+  if (!isMedia) {
+    const optimistic = {
+      _id: tempId,
+      senderId: authUser?._id,
+      receiverId: userId,
+      text: payload?.text || composerText,
+      image: null,
+      video: null,
+      createdAt: new Date().toISOString(),
+      _pending: true,
+    };
+    dispatch(chatActions.appendMessage(optimistic));
+    dispatch(chatActions.clearComposer());   // clear input immediately
+  }
 
   try {
     const response = await axiosInstance.post(`/messages/send/${userId}`, payload);
-    dispatch(chatActions.appendMessage(response.data));
-    dispatch(chatActions.clearComposer());
+    if (isMedia) {
+      dispatch(chatActions.appendMessage(response.data));
+    } else {
+      // Swap the optimistic message with the real confirmed one
+      dispatch(chatActions.replaceMessage({ tempId, message: response.data }));
+    }
     dispatch(getConversations());
     return true;
   } catch (err) {
     console.error("sendMessage failed:", err?.response?.data?.message || err.message);
+    if (!isMedia) {
+      // Remove the optimistic message and restore text on failure
+      dispatch(chatActions.removeMessage(tempId));
+      dispatch(chatActions.setChat({ composerText }));
+    }
     return false;
   } finally {
     if (isMedia) dispatch(chatActions.setChat({ isSendingMedia: false }));

@@ -7,10 +7,11 @@ export function ConversationRow({ user, selected, onSelect }) {
       type="button"
       onClick={onSelect}
       className={[
-        "flex w-full items-center gap-3 border-b border-border px-3 py-2.5 text-left transition-colors",
+        "flex w-full items-center gap-3 border-b border-border px-3 py-2.5 text-left",
+        "transition-all duration-150 ease-out",
         selected
           ? "bg-accent/10 text-foreground"
-          : "hover:bg-black/4 dark:hover:bg-white/5",
+          : "hover:bg-black/4 active:scale-[0.99] dark:hover:bg-white/5",
       ].join(" ")}
     >
       <AvatarWithOnlineIndicator isOnline={user.isOnline ?? false}>
@@ -24,12 +25,15 @@ export function ConversationRow({ user, selected, onSelect }) {
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-[15px] font-semibold">{user.name}</p>
-        {user.isOnline ? (
-          <p className="text-xs font-medium text-green-500 dark:text-green-400">
-            Online
-          </p>
-        ) : null}
+        <p className={`text-xs ${user.isOnline ? "font-medium text-green-500 dark:text-green-400" : "text-muted"}`}>
+          {user.isOnline ? "Online" : "Offline"}
+        </p>
       </div>
+
+      {/* Subtle selected indicator */}
+      {selected && (
+        <div className="size-2 shrink-0 rounded-full bg-accent" aria-hidden />
+      )}
     </button>
   );
 }

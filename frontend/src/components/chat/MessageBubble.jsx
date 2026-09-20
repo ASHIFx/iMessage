@@ -1,27 +1,39 @@
 import { withTransform } from "../../lib/imagekit";
 import { MessageVideo } from "./MessageVideo";
 
-// Compress + size images for the bubble (q-auto works for images; f-auto picks WebP/AVIF).
 const IMAGE_TRANSFORM = "q-auto,w-640,f-auto";
 
-export function MessageBubble({ message }) {
+export function MessageBubble({ message, isNew }) {
   const isOwnMessage = message.role === "me";
+  const isPending = Boolean(message._pending);
   const hasImage = Boolean(message.imageUrl);
   const hasVideo = Boolean(message.videoUrl);
 
   return (
-    <div className={`flex w-full ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+    <div
+      className={[
+        "flex w-full",
+        isOwnMessage ? "justify-end" : "justify-start",
+        // Only animate genuinely new messages (last ~2) to avoid animating history on load
+        isNew ? "msg-bubble" : "",
+      ].join(" ")}
+    >
       <div
-        className={`max-w-[min(90%,28rem)] rounded-2xl px-3 py-2 text-[15px] leading-snug sm:max-w-[min(75%,28rem)] sm:px-3.5 ${
+        className={[
+          "max-w-[min(90%,28rem)] rounded-2xl px-3 py-2 text-[15px] leading-snug sm:max-w-[min(75%,28rem)] sm:px-3.5",
+          "transition-opacity duration-150",
           isOwnMessage
             ? "rounded-br-md bg-accent text-accent-foreground"
-            : "rounded-bl-md bg-surface"
-        }`}
+            : "rounded-bl-md bg-surface",
+          isPending ? "msg-pending" : "",
+        ].join(" ")}
       >
         {hasImage ? (
           <img
             src={withTransform(message.imageUrl, IMAGE_TRANSFORM)}
             alt=""
+            loading="lazy"
+            decoding="async"
             className="mb-1.5 max-h-40 max-w-full rounded-lg object-cover sm:max-h-52 sm:rounded-xl"
           />
         ) : null}
@@ -34,7 +46,7 @@ export function MessageBubble({ message }) {
             isOwnMessage ? "text-accent-foreground/75" : "text-muted"
           }`}
         >
-          {message.time}
+          {isPending ? "Sending…" : message.time}
         </p>
       </div>
     </div>

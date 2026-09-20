@@ -1,6 +1,6 @@
 import { Button, TextArea } from "@heroui/react";
 import { ImageIcon, LoaderIcon, SendHorizontalIcon } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import useKeyboardSound from "../../hooks/useKeyboardSound";
 import { useChatStore } from "../../store/useChatStore";
 
@@ -14,14 +14,25 @@ export function ChatComposer() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const mediaInputRef = useRef(null);
 
+  // Spam prevention — 500ms cooldown between sends
+  const sendingRef = useRef(false);
+  const [sendDisabled, setSendDisabled] = useState(false);
+
   const maybePlaySound = () => {
     if (isSoundEnabled) playRandomKeyStrokeSound();
   };
 
   const handleSend = async () => {
-    if (!composerText.trim()) return;
+    if (!composerText.trim() || sendingRef.current) return;
+    sendingRef.current = true;
+    setSendDisabled(true);
     const ok = await sendTextMessage();
     if (ok) maybePlaySound();
+    // Re-enable after 500ms
+    setTimeout(() => {
+      sendingRef.current = false;
+      setSendDisabled(false);
+    }, 500);
   };
 
   const handleTextChange = (value) => {
@@ -97,7 +108,7 @@ export function ChatComposer() {
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              handleSend();
+              if (!sendDisabled) handleSend();
             }
           }}
           className="flex-1 rounded-full"
@@ -107,7 +118,7 @@ export function ChatComposer() {
           variant="primary"
           isIconOnly
           aria-label="Send message"
-          isDisabled={!composerText.trim() || isSendingMedia}
+          isDisabled={!composerText.trim() || isSendingMedia || sendDisabled}
           onPress={handleSend}
         >
           <SendHorizontalIcon className="size-5" />

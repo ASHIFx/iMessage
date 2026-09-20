@@ -20,10 +20,12 @@ export function getInitials(name) {
 
 function mapUserToConversation({ user, messages, authUser, onlineUsers }) {
   const mappedMessages = messages.map((message) => ({
+    _id: message._id,          // keep original for optimistic swap/remove
     id: message._id,
+    _pending: message._pending || false,
     role: String(message.senderId) === String(authUser?._id) ? "me" : "them",
     text: message.text || "",
-    time: formatMessageTime(message.createdAt),
+    time: message._pending ? "" : formatMessageTime(message.createdAt),
     imageUrl: message.image,
     videoUrl: message.video,
   }));

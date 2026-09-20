@@ -46,15 +46,24 @@ export function AuthActionPanel() {
     setBusy(true);
     try {
       if (mode === "login") {
-        await login({ email, password });
-        toast.success("Welcome back!");
+        const result = await login({ email, password });
+        if (result.requiresOtp) {
+          // Account exists but unverified — show OTP screen
+          if (result.devOtp) setDevOtp(result.devOtp);
+          setStep("otp");
+          startResendTimer();
+          toast("Please verify your email to continue", { icon: "📧" });
+          setTimeout(() => otpInputRef.current?.focus(), 100);
+        } else {
+          toast.success("Welcome back!");
+        }
       } else {
         if (!fullname.trim()) { toast.error("Please enter your name"); return; }
         const result = await register({ email, password, fullname: fullname.trim() });
-        if (result.devOtp) setDevOtp(result.devOtp);  // auto-fill in dev
+        if (result.devOtp) setDevOtp(result.devOtp);
         setStep("otp");
         startResendTimer();
-        toast.success("Code sent! Check your email.");
+        toast.success(result.message || "Code sent! Check your email.");
         setTimeout(() => otpInputRef.current?.focus(), 100);
       }
     } catch (err) {
@@ -71,7 +80,7 @@ export function AuthActionPanel() {
     setBusy(true);
     try {
       await verifyOtp({ email, otp });
-      toast.success("Account created! Welcome 🎉");
+      toast.success(mode === "login" ? "Welcome back! 👋" : "Account created! Welcome 🎉");
     } catch (err) {
       toast.error(err?.response?.data?.message || "Invalid or expired code");
     } finally {
@@ -164,7 +173,7 @@ export function AuthActionPanel() {
 
             <Button fullWidth size="lg" variant="primary" className={btnCls} type="submit" isDisabled={busy || otp.length < 6}>
               <span className="relative z-1 flex items-center justify-center gap-2">
-                {busy ? "Verifying…" : "Verify & create account"}
+                {busy ? "Verifying…" : mode === "login" ? "Verify & sign in" : "Verify & create account"}
                 <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </span>
             </Button>

@@ -1,27 +1,80 @@
-import useScrollToBottom from "../../hooks/useScrollToBottom";
+import { useEffect, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { NoConversationPlaceholder } from "./NoConversationPlaceholder";
 import { useSelectedConversation } from "../../hooks/useSelectedConversation";
+import { useChatStore } from "../../store/useChatStore";
+
+// Skeleton row — shown while loading messages
+function SkeletonBubble({ own }) {
+  return (
+    <div className={`flex w-full ${own ? "justify-end" : "justify-start"}`}>
+      <div
+        className={`skeleton h-9 rounded-2xl ${
+          own ? "rounded-br-md" : "rounded-bl-md"
+        }`}
+        style={{ width: `${Math.random() * 90 + 80}px` }}
+        aria-hidden
+      />
+    </div>
+  );
+}
+
+const SKELETON_PATTERN = [0, 1, 0, 0, 1, 0, 1, 1]; // 0=other, 1=own
 
 export function MessageList() {
   const { activeConversation, activeConversationId } = useSelectedConversation();
+  const isMessagesLoading = useChatStore((s) => s.isMessagesLoading);
 
-  const lastMessageId = activeConversation?.messages.at(-1)?.id;
-  const messagesScrollRef = useScrollToBottom(activeConversationId, lastMessageId);
+  const bottomRef = useRef(null);
+  const containerRef = useRef(null);
+  const prevIdRef = useRef(null);
+
+  const messages = activeConversation?.messages ?? [];
+  const messageCount = messages.length;
+
+  useEffect(() => {
+    if (!bottomRef.current) return;
+    const conversationChanged = prevIdRef.current !== activeConversationId;
+    prevIdRef.current = activeConversationId;
+
+    if (conversationChanged) {
+      // Instant jump when switching conversations
+      bottomRef.current.scrollIntoView({ behavior: "instant" });
+    } else {
+      // Smooth scroll for new incoming/outgoing messages
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [activeConversationId, messageCount]);
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
-      {activeConversation ? (
+      {activeConversationId ? (
         <div
-          ref={messagesScrollRef}
-          className="flex flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-2 py-3 sm:px-3 sm:py-4"
+          ref={containerRef}
+          className="messages-scroll flex flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-2 py-3 sm:px-3 sm:py-4"
         >
           <p className="mb-3 text-center text-[11px] font-medium uppercase tracking-wide text-muted">
             Today
           </p>
-          {activeConversation.messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
+
+          {isMessagesLoading ? (
+            // Skeleton placeholders while loading
+            SKELETON_PATTERN.map((own, i) => (
+              <SkeletonBubble key={i} own={Boolean(own)} />
+            ))
+          ) : (
+            messages.map((message, i) => (
+              <MessageBubble
+                key={message._id || message.id}
+                message={message}
+                // Only animate the very last messages so load doesn't animate everything
+                isNew={i >= messages.length - 2}
+              />
+            ))
+          )}
+
+          {/* Invisible anchor to scroll to */}
+          <div ref={bottomRef} className="h-0 w-full shrink-0" aria-hidden />
         </div>
       ) : (
         <NoConversationPlaceholder />

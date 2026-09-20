@@ -81,8 +81,16 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Email, password and name are required" });
     if (password.length < 6)
       return res.status(400).json({ message: "Password must be at least 6 characters" });
-    if (await User.findOne({ email }))
-      return res.status(409).json({ message: "Email already in use" });
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      if (existing.isVerified) {
+        // Fully verified account — tell them to sign in
+        return res.status(409).json({ message: "Email already in use. Please sign in instead." });
+      }
+      // Account exists but never verified — resend OTP so they can complete registration
+      return issueOtp(existing, res, 200);
+    }
 
     const user = await User.create({
       email,
@@ -142,6 +150,11 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.hashedPassword)))
       return res.status(401).json({ message: "Invalid email or password" });
+
+    // Account exists, password correct, but email never verified → resend OTP
+    if (!user.isVerified) {
+      return issueOtp(user, res, 200);
+    }
 
     const accessToken = signToken(user._id);
     setRefreshCookie(res, accessToken);
