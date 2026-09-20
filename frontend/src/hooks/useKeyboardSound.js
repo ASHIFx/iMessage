@@ -1,34 +1,36 @@
-// Lazily initialise Audio objects on first use so the browser doesn't
-// block them under the autoplay policy (audio created before a user gesture
-// cannot always be played).
-let soundsReady = false;
-let keyStrokeSounds = [];
+// All four keystroke clips — picked randomly on each keypress.
+// We clone the Audio node on every play so multiple rapid keystrokes
+// can overlap without the "currentTime = 0 race" killing earlier sounds.
+const KEYSTROKE_SRCS = [
+  "/sounds/keystroke1.mp3",
+  "/sounds/keystroke2.mp3",
+  "/sounds/keystroke3.mp3",
+  "/sounds/keystroke4.mp3",
+];
 
-function ensureSoundsReady() {
-  if (soundsReady) return;
-  soundsReady = true;
-  keyStrokeSounds = [
-    new Audio("/sounds/keystroke1.mp3"),
-    new Audio("/sounds/keystroke2.mp3"),
-    new Audio("/sounds/keystroke3.mp3"),
-    new Audio("/sounds/keystroke4.mp3"),
-  ];
-  // Preload so first keystroke is instant
-  keyStrokeSounds.forEach((a) => {
+// Pre-create one Audio object per source so the browser can preload them.
+// These are created lazily the first time a user gesture occurs.
+let pool = null;
+
+function getPool() {
+  if (pool) return pool;
+  pool = KEYSTROKE_SRCS.map((src) => {
+    const a = new Audio(src);
     a.preload = "auto";
-    a.load();
+    return a;
   });
+  return pool;
 }
 
 function useKeyboardSound() {
   const playRandomKeyStrokeSound = () => {
-    ensureSoundsReady();
-    if (keyStrokeSounds.length === 0) return;
-    const randomSound =
-      keyStrokeSounds[Math.floor(Math.random() * keyStrokeSounds.length)];
-    randomSound.currentTime = 0;
-    randomSound.play().catch(() => {
-      // Autoplay blocked silently — user hasn't interacted yet
+    const sounds = getPool();
+    const idx = Math.floor(Math.random() * sounds.length);
+    // Clone the node so rapid typing can produce overlapping sounds
+    const clone = sounds[idx].cloneNode();
+    clone.volume = 0.4;
+    clone.play().catch(() => {
+      // Silently swallow autoplay policy blocks
     });
   };
 

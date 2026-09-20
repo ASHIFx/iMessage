@@ -212,7 +212,7 @@ export const sendMessage = (payload) => async (dispatch, getState) => {
   const userId = selectedUser?._id || activeConversationId;
   if (!userId) return false;
 
-  const isMedia = typeof FormData !== "undefined" && payload instanceof FormData;
+  const isMedia = payload && (payload.image !== undefined || payload.video !== undefined);
   if (isMedia) dispatch(chatActions.setChat({ isSendingMedia: true }));
 
   try {

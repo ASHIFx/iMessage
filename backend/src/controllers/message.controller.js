@@ -35,7 +35,7 @@ export const getConversationsForSidebar = async (req, res) => {
     res.status(200).json(conversations);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
-  } 
+  }
 };
 
 export const getMessage = async (req, res) => {
@@ -55,26 +55,24 @@ export const getMessage = async (req, res) => {
     console.error("Error in getMessages:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text } = req.body;
+    const { text, image, video } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    let imageUrl;
-    let videoUrl;
+    let imageUrl = image || null;   // base64 data-URL from frontend
+    let videoUrl = video || null;   // base64 data-URL from frontend
 
-    if (req.file) {
+    // Fallback: if file was sent via multipart/form-data (e.g. future native apps)
+    // and Cloudinary is configured, upload it
+    if (req.file && !imageUrl && !videoUrl) {
       if (!hasCloudinaryConfig()) {
-        return res
-          .status(500)
-          .json({ message: "Media upload is not configured" });
+        return res.status(500).json({ message: "Media upload is not configured" });
       }
-
       const url = await uploadChatMedia(req.file);
-
       if (req.file.mimetype.startsWith("video/")) {
         videoUrl = url;
       } else {
@@ -102,4 +100,4 @@ export const sendMessage = async (req, res) => {
     console.error("Error in sendMessage:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};

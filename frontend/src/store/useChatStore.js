@@ -57,10 +57,9 @@ const facade = (chatState, dispatch) => ({
     return dispatch(sendMessage({ text }));
   },
 
-  sendMediaMessage: ({ file }) => {
-    const formData = new FormData();
-    formData.append("media", file);
-    return dispatch(sendMessage(formData));
+  sendMediaMessage: ({ base64, isVideo }) => {
+    const payload = isVideo ? { video: base64 } : { image: base64 };
+    return dispatch(sendMessage(payload));
   },
 });
 

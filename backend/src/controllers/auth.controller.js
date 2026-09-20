@@ -77,16 +77,28 @@ async function issueOtp(user, res, status = 200) {
   });
 
   const message = `<p>Your iMessage verification code is <strong>${otp}</strong>.</p><p>This code expires in 10 minutes.</p>`;
+  let emailSent = false;
   if (config.BREVO_API_KEY && config.EMAIL_USER) {
-    await sendEmail({ email: user.email, subject: "Your iMessage verification code", message });
-  } else if (config.NODE_ENV !== "production") {
-    console.log(`Development OTP for ${user.email}: ${otp}`);
-  } else {
-    return res.status(503).json({ message: "OTP email delivery is not configured" });
+    try {
+      await sendEmail({ email: user.email, subject: "Your iMessage verification code", message });
+      emailSent = true;
+    } catch (emailErr) {
+      if (config.NODE_ENV === "production") {
+        return res.status(503).json({ message: "Failed to send verification email. Please try again." });
+      }
+      console.warn(`⚠️  sendEmail failed in dev: ${emailErr.message}`);
+    }
+  }
+  if (!emailSent) {
+    if (config.NODE_ENV === "production") {
+      return res.status(503).json({ message: "OTP email delivery is not configured" });
+    }
+    // Dev fallback — print OTP to console
+    console.log(`\n🔑 Development OTP for ${user.email}: ${otp}\n`);
   }
 
-  const response = { requiresOtp: true, message: "A verification code was sent to your email" };
-  if (config.NODE_ENV !== "production" && !(config.BREVO_API_KEY && config.EMAIL_USER)) response.devOtp = otp;
+  const response = { requiresOtp: true, message: emailSent ? "A verification code was sent to your email" : "Dev mode: check server console for OTP" };
+  if (!emailSent) response.devOtp = otp;
   return res.status(status).json(response);
 }
 
