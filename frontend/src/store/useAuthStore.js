@@ -5,8 +5,10 @@ import {
   login,
   logout,
   register,
+  resendOtp,
   store,
   updateProfile,
+  verifyOtp,
 } from "./store.js";
 
 const facade = (authState, dispatch) => ({
@@ -15,6 +17,8 @@ const facade = (authState, dispatch) => ({
   clearAuth: () => dispatch(clearAuth()),
   login: (credentials) => dispatch(login(credentials)),
   register: (credentials) => dispatch(register(credentials)),
+  verifyOtp: (credentials) => dispatch(verifyOtp(credentials)),
+  resendOtp: (email) => dispatch(resendOtp(email)),
   updateProfile: (updates) => dispatch(updateProfile(updates)),
   logout: () => dispatch(logout()),
 });

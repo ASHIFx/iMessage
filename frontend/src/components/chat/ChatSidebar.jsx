@@ -42,7 +42,6 @@ function ChatSidebar() {
   const setActiveConversationId = useChatStore((state) => state.setActiveConversationId);
 
   const onlineUsers = useAuthStore((state) => state.onlineUsers);
-  const logout = useAuthStore((state) => state.logout);
   const authUser = useAuthStore((state) => state.authUser);
 
   const { activeConversationId, isLargeScreen } = useSelectedConversation();
@@ -74,12 +73,18 @@ function ChatSidebar() {
           <p className="flex-1 truncate text-lg font-bold tracking-tight sm:text-[22px]">
             {APP_NAME}
           </p>
-          <button className="size-8 overflow-hidden rounded-full bg-accent text-xs font-semibold text-white" title="Edit profile" onClick={() => setIsEditingProfile((open) => !open)}>
-            {authUser?.profilePic ? <img className="size-full object-cover" src={authUser.profilePic} alt="" /> : (authUser?.fullname || authUser?.username || "U").slice(0, 1).toUpperCase()}
+          <button
+            className="size-9 shrink-0 overflow-hidden rounded-full bg-accent ring-2 ring-accent/30 hover:ring-accent/60 transition-all text-xs font-bold text-white"
+            title="Edit profile & sign out"
+            aria-label="Open profile"
+            onClick={() => setIsEditingProfile((open) => !open)}
+          >
+            {authUser?.profilePic
+              ? <img className="size-full object-cover" src={authUser.profilePic} alt="" />
+              : (authUser?.fullname || "U").slice(0, 1).toUpperCase()}
           </button>
         </div>
         {isEditingProfile ? <ProfileEditor onClose={() => setIsEditingProfile(false)} /> : null}
-        <button className="mt-2 px-1 text-left text-xs text-muted hover:text-foreground" type="button" onClick={() => logout()}>Sign out</button>
       </div>
 
       <Tabs

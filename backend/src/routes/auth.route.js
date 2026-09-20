@@ -6,6 +6,8 @@ import multer from "multer";
 const authRouter = Router();
 
 authRouter.post("/register", controller.register);
+authRouter.post("/verify-email", controller.verifyOtp);
+authRouter.post("/sendotp", controller.sendOtp);
 authRouter.post("/login", controller.login);
 authRouter.get("/me", protectRoute, controller.me);
 authRouter.post("/logout", controller.logout);

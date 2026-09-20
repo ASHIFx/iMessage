@@ -138,11 +138,22 @@ export const login = (credentials) => async (dispatch) => {
   return response.data;
 };
 
-export const register = (credentials) => async (dispatch) => {
+export const register = (credentials) => async () => {
+  // Returns { requiresOtp: true } — token only issued after verifyOtp
   const response = await axiosInstance.post("/auth/register", credentials);
+  return response.data;
+};
+
+export const verifyOtp = (credentials) => async (dispatch) => {
+  const response = await axiosInstance.post("/auth/verify-email", credentials);
   localStorage.setItem("accessToken", response.data.accessToken);
   dispatch(authActions.setAuthUser(response.data.user));
   dispatch(connectSocket(response.data.user));
+  return response.data;
+};
+
+export const resendOtp = (email) => async () => {
+  const response = await axiosInstance.post("/auth/sendotp", { email });
   return response.data;
 };
 
