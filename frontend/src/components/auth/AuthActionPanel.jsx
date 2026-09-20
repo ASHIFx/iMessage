@@ -6,12 +6,6 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { AppLogo } from "../AppLogo";
 import { AuthCardShell } from "./AuthCardShell";
 
-const logoTileClassName = [
-  "relative rounded-2xl bg-linear-to-b from-white to-[#f2f2f7] p-2",
-  "shadow-lg shadow-black/8 ring-1 ring-black/8",
-  "dark:from-[#2c2c2e] dark:to-[#1a1a1c] dark:shadow-black/50 dark:ring-white/12",
-].join(" ");
-
 const continueButtonClassName = [
   "group relative h-13 overflow-hidden rounded-2xl text-[15px] font-semibold",
   "shadow-xl shadow-accent/45 dark:shadow-accent/35",
@@ -20,64 +14,103 @@ const continueButtonClassName = [
   "dark:after:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]",
 ].join(" ");
 
+const inputClassName =
+  "w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted outline-none focus:border-accent transition-colors";
+
 export function AuthActionPanel() {
-  const login = useAuthStore((state) => state.login);
-  const register = useAuthStore((state) => state.register);
-  const verifyOtp = useAuthStore((state) => state.verifyOtp);
-  const resendOtp = useAuthStore((state) => state.resendOtp);
+  const login = useAuthStore((s) => s.login);
+  const register = useAuthStore((s) => s.register);
+
   const [mode, setMode] = useState("login");
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpPending, setOtpPending] = useState(false);
-  const [resendIn, setResendIn] = useState(0);
   const [busy, setBusy] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (busy) return;
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setBusy(true);
+    try {
+      if (mode === "login") {
+        await login({ email, password });
+        toast.success("Welcome back!");
+      } else {
+        if (!fullname.trim()) {
+          toast.error("Please enter your name");
+          return;
+        }
+        await register({ email, password, fullname: fullname.trim() });
+        toast.success("Account created!");
+      }
+      // authUser is now in Redux → App.jsx routes to ChatPage automatically
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Something went wrong. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <section className="relative flex flex-1 flex-col items-stretch justify-center overflow-visible px-5 py-10 sm:px-10 md:overflow-hidden md:px-14 md:py-10 lg:px-16">
       <AuthCardShell>
+        {/* Logo + title */}
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="relative mb-5">
             <div
               aria-hidden
               className="absolute -inset-3.5 rounded-[20px] bg-linear-to-br from-accent/22 via-accent/8 to-transparent opacity-90 blur-xl dark:from-accent/28 dark:via-accent/10"
             />
-            <div className={logoTileClassName}>
+            <div className="relative rounded-2xl bg-linear-to-b from-white to-[#f2f2f7] p-2 shadow-lg shadow-black/8 ring-1 ring-black/8 dark:from-[#2c2c2e] dark:to-[#1a1a1c] dark:shadow-black/50 dark:ring-white/12">
               <AppLogo size={52} className="rounded-xl" alt="" />
             </div>
           </div>
-
           <div className="flex items-center justify-center gap-1.5 text-accent">
             <SparklesIcon className="size-3.5" strokeWidth={2} aria-hidden />
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em]">
-              Secure entry
+              {mode === "login" ? "Sign in" : "Create account"}
             </span>
           </div>
         </div>
 
-        <form className="space-y-3" onSubmit={async (event) => {
-          event.preventDefault();
-          setBusy(true);
-          try {
-            if (otpPending) {
-              await verifyOtp({ email, otp });
-              toast.success("Welcome back");
-              return;
-            }
-            const result = mode === "login"
-              ? await login({ email, password })
-              : await register({ email, password, fullname });
-            setOtpPending(Boolean(result.requiresOtp));
-            if (!result.requiresOtp) toast.success(mode === "login" ? "Welcome back" : "Account created");
-          }
-          catch (error) { toast.error(error.response?.data?.message || "Unable to sign in"); }
-          finally { setBusy(false); }
-        }}>
-            {otpPending ? <input className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none" inputMode="numeric" maxLength={6} placeholder="6-digit email code" value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, ""))} required /> : null}
-            {!otpPending && mode === "register" ? <input className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none" placeholder="Your name" value={fullname} onChange={(event) => setFullname(event.target.value)} required /> : null}
-            <input className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none" type="email" placeholder="Email address" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          {!otpPending ? <input className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none" type="password" placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} required /> : null}
+        {/* Form */}
+        <form className="space-y-3" onSubmit={handleSubmit}>
+          {mode === "register" && (
+            <input
+              className={inputClassName}
+              placeholder="Your name"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              autoComplete="name"
+              required
+            />
+          )}
+          <input
+            className={inputClassName}
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            required
+          />
+          <input
+            className={inputClassName}
+            type="password"
+            placeholder="Password (min 6 chars)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            minLength={6}
+            required
+          />
+
           <Button
             fullWidth
             size="lg"
@@ -87,7 +120,7 @@ export function AuthActionPanel() {
             isDisabled={busy}
           >
             <span className="relative z-1 flex items-center justify-center gap-2">
-              {otpPending ? "Verify code" : mode === "login" ? "Send code" : "Create account"}
+              {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
               <ArrowRightIcon
                 className="size-4 transition-transform group-hover:translate-x-0.5"
                 aria-hidden
@@ -95,11 +128,19 @@ export function AuthActionPanel() {
             </span>
           </Button>
         </form>
-        {otpPending ? <button className="mt-3 text-center text-sm text-accent disabled:opacity-50" type="button" disabled={resendIn > 0 || busy} onClick={async () => { setBusy(true); try { await resendOtp({ email, password, fullname }); setResendIn(30); const timer = window.setInterval(() => setResendIn((seconds) => { if (seconds <= 1) { window.clearInterval(timer); return 0; } return seconds - 1; }), 1000); toast.success("A new code was sent"); } catch (error) { toast.error(error.response?.data?.message || "Unable to resend code"); } finally { setBusy(false); } }}>{resendIn ? `Resend code in ${resendIn}s` : "Resend code"}</button> : null}
-        {!otpPending ? <button className="mt-4 text-center text-sm text-accent" type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>
-          {mode === "login" ? "New here? Create an account" : "Already have an account? Sign in"}
-        </button> : null}
 
+        {/* Toggle mode */}
+        <button
+          className="mt-4 text-center text-sm text-accent"
+          type="button"
+          onClick={() => setMode(mode === "login" ? "register" : "login")}
+        >
+          {mode === "login"
+            ? "New here? Create an account"
+            : "Already have an account? Sign in"}
+        </button>
+
+        {/* Footer */}
         <div className="mt-8 flex items-center justify-center gap-2 border-t border-black/6 pt-6 text-[11px] text-[#8E8E93] dark:border-white/8 dark:text-[#636366]">
           <ShieldCheckIcon
             className="size-3.5 shrink-0 text-[#34C759] dark:text-[#30D158]"

@@ -130,37 +130,26 @@ export const clearAuth = () => (dispatch) => {
   dispatch(authActions.clearAuthState());
 };
 
-export const login = (credentials) => async () => {
+export const login = (credentials) => async (dispatch) => {
   const response = await axiosInstance.post("/auth/login", credentials);
-  return response.data;
-};
-
-export const logout = () => async (dispatch) => {
-  try {
-    await axiosInstance.post("/auth/logout");
-  } catch {
-    // ignore
-  }
-  localStorage.removeItem("accessToken");
-  dispatch(clearAuth());
-};
-
-export const register = (credentials) => async () => {
-  const response = await axiosInstance.post("/auth/register", credentials);
-  return response.data;
-};
-
-export const verifyOtp = (credentials) => async (dispatch) => {
-  const response = await axiosInstance.post("/auth/verify-email", credentials);
   localStorage.setItem("accessToken", response.data.accessToken);
   dispatch(authActions.setAuthUser(response.data.user));
   dispatch(connectSocket(response.data.user));
   return response.data;
 };
 
-export const resendOtp = (credentials) => async () => {
-  const response = await axiosInstance.post("/auth/sendotp", credentials);
+export const register = (credentials) => async (dispatch) => {
+  const response = await axiosInstance.post("/auth/register", credentials);
+  localStorage.setItem("accessToken", response.data.accessToken);
+  dispatch(authActions.setAuthUser(response.data.user));
+  dispatch(connectSocket(response.data.user));
   return response.data;
+};
+
+export const logout = () => async (dispatch) => {
+  try { await axiosInstance.post("/auth/logout"); } catch { /* ignore */ }
+  localStorage.removeItem("accessToken");
+  dispatch(clearAuth());
 };
 
 export const updateProfile = (updates) => async (dispatch) => {
