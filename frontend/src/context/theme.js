@@ -9,7 +9,6 @@ export function isValidThemePreset(presetId) {
   return PRESET_IDS.has(presetId);
 }
 
-/** apply preset to `<html>` immediately so `--accent` updates before paint. */
 export function applyThemePresetToDocument(presetId) {
   const id = isValidThemePreset(presetId) ? presetId : DEFAULT_THEME_PRESET_ID;
   document.documentElement.setAttribute("data-theme-preset", id);

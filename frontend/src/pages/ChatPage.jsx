@@ -18,13 +18,11 @@ function ChatPage() {
 
   const { activeConversation, activeConversationId, isLargeScreen } = useSelectedConversation();
 
-  // Load sidebar data once on mount
   useEffect(() => {
     getUsers();
     getConversations();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load messages & subscribe to socket when active conversation changes
   useEffect(() => {
     if (!activeConversationId) return;
 

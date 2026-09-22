@@ -52,7 +52,6 @@ export function ProfileEditor({ onClose }) {
 
   return (
     <div className="mt-2 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <p className="text-sm font-semibold">Edit Profile</p>
         <button
@@ -66,7 +65,6 @@ export function ProfileEditor({ onClose }) {
       </div>
 
       <form className="space-y-4 p-4" onSubmit={handleSubmit}>
-        {/* Avatar picker */}
         <div className="flex justify-center">
           <div className="relative">
             <div className="size-20 overflow-hidden rounded-full bg-accent ring-2 ring-accent/30">
@@ -78,7 +76,6 @@ export function ProfileEditor({ onClose }) {
                 </span>
               )}
             </div>
-            {/* Camera overlay */}
             <button
               type="button"
               aria-label="Change photo"
@@ -97,7 +94,6 @@ export function ProfileEditor({ onClose }) {
           </div>
         </div>
 
-        {/* Name input */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted">Display name</label>
           <input
@@ -109,7 +105,6 @@ export function ProfileEditor({ onClose }) {
           />
         </div>
 
-        {/* Email (read-only) */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted">Email</label>
           <p className="rounded-xl border border-border bg-background/50 px-3 py-2.5 text-sm text-muted">
@@ -117,7 +112,6 @@ export function ProfileEditor({ onClose }) {
           </p>
         </div>
 
-        {/* Save button */}
         <button
           type="submit"
           disabled={busy}
@@ -128,7 +122,6 @@ export function ProfileEditor({ onClose }) {
         </button>
       </form>
 
-      {/* Sign out – separated with a border so it's clearly destructive */}
       <div className="border-t border-border p-3">
         <button
           type="button"

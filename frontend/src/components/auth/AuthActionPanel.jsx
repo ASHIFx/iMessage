@@ -22,14 +22,14 @@ export function AuthActionPanel() {
   const verifyOtp = useAuthStore((s) => s.verifyOtp);
   const resendOtp = useAuthStore((s) => s.resendOtp);
 
-  const [mode, setMode] = useState("login");          // "login" | "register"
-  const [step, setStep] = useState("form");            // "form" | "otp"
+  const [mode, setMode] = useState("login");
+  const [step, setStep] = useState("form");
   const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [devOtp, setDevOtp] = useState("");            // autofill in dev
+  const [devOtp, setDevOtp] = useState("");
   const [resendCooldown, setResendCooldown] = useState(0);
   const [busy, setBusy] = useState(false);
   const otpInputRef = useRef(null);
@@ -49,7 +49,6 @@ export function AuthActionPanel() {
       if (mode === "login") {
         const result = await login({ email, password });
         if (result.requiresOtp) {
-          // Account exists but unverified — show OTP screen
           if (result.devOtp) setDevOtp(result.devOtp);
           setStep("otp");
           startResendTimer();
@@ -109,7 +108,6 @@ export function AuthActionPanel() {
   return (
     <section className="relative flex flex-1 flex-col items-stretch justify-center overflow-visible px-5 py-10 sm:px-10 md:overflow-hidden md:px-14 md:py-10 lg:px-16">
       <AuthCardShell>
-        {/* Logo */}
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="relative mb-5">
             <div aria-hidden className="absolute -inset-3.5 rounded-[20px] bg-linear-to-br from-accent/22 via-accent/8 to-transparent opacity-90 blur-xl dark:from-accent/28 dark:via-accent/10" />
@@ -119,7 +117,6 @@ export function AuthActionPanel() {
           </div>
         </div>
 
-        {/* ── OTP verification step ─────────────────────────────────────────── */}
         {step === "otp" ? (
           <form className="space-y-4" onSubmit={handleVerify}>
             <div className="rounded-xl border border-border bg-surface p-4 text-center">
@@ -135,7 +132,6 @@ export function AuthActionPanel() {
               )}
             </div>
 
-            {/* OTP boxes */}
             <div className="flex justify-center gap-2">
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <input
@@ -193,7 +189,6 @@ export function AuthActionPanel() {
             </div>
           </form>
         ) : (
-          /* ── Login / Register form ──────────────────────────────────────────── */
           <form className="space-y-3" onSubmit={handleForm}>
             <p className="text-center text-sm font-semibold text-foreground">
               {mode === "login" ? "Sign in to iMessage" : "Create your account"}
@@ -226,7 +221,6 @@ export function AuthActionPanel() {
           </form>
         )}
 
-        {/* Toggle mode */}
         {step === "form" && (
           <button className="mt-4 text-center text-sm text-accent" type="button"
             onClick={() => { setMode(mode === "login" ? "register" : "login"); setOtp(""); }}>
@@ -234,7 +228,6 @@ export function AuthActionPanel() {
           </button>
         )}
 
-        {/* Footer */}
         <div className="mt-8 flex items-center justify-center gap-2 border-t border-black/6 pt-6 text-[11px] text-[#8E8E93] dark:border-white/8 dark:text-[#636366]">
           <ShieldCheckIcon className="size-3.5 shrink-0 text-[#34C759] dark:text-[#30D158]" strokeWidth={2} aria-hidden />
           <span>Protected session · TLS encryption</span>

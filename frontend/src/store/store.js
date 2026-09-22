@@ -2,7 +2,6 @@ import { configureStore, createSlice } from "@reduxjs/toolkit";
 import { io } from "socket.io-client";
 import { axiosInstance } from "../lib/axios.js";
 
-// ─── Socket kept OUTSIDE Redux (non-serializable) ─────────────────────────────
 let _socket = null;
 
 export function getSocket() {
@@ -15,7 +14,6 @@ const socketBaseUrl =
     ? "http://localhost:3000"
     : window.location.origin);
 
-// ─── Auth Slice ───────────────────────────────────────────────────────────────
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -41,7 +39,6 @@ const authSlice = createSlice({
   },
 });
 
-// ─── Chat Slice ───────────────────────────────────────────────────────────────
 const chatSlice = createSlice({
   name: "chat",
   initialState: {
@@ -63,11 +60,9 @@ const chatSlice = createSlice({
     setChat: (state, action) => { Object.assign(state, action.payload); },
     appendMessage: (state, action) => { state.messages.push(action.payload); },
     clearComposer: (state) => { state.composerText = ""; },
-    // Optimistic: remove a message by its id
     removeMessage: (state, action) => {
       state.messages = state.messages.filter((m) => m._id !== action.payload);
     },
-    // Optimistic: swap a temp message with the confirmed server message
     replaceMessage: (state, action) => {
       const { tempId, message } = action.payload;
       const idx = state.messages.findIndex((m) => m._id === tempId);
@@ -77,7 +72,6 @@ const chatSlice = createSlice({
   },
 });
 
-// ─── Store ────────────────────────────────────────────────────────────────────
 export const store = configureStore({
   reducer: { auth: authSlice.reducer, chat: chatSlice.reducer },
   middleware: (getDefaultMiddleware) =>
@@ -91,14 +85,13 @@ export const store = configureStore({
 export const authActions = authSlice.actions;
 export const chatActions = chatSlice.actions;
 
-// ─── Socket Thunks ────────────────────────────────────────────────────────────
 export const connectSocket = (user) => (dispatch) => {
   if (!user) return;
   if (_socket?.connected) return;
 
   _socket = io(socketBaseUrl, {
     withCredentials: true,
-    query: { userId: user._id },
+    auth: { token: localStorage.getItem("accessToken") },
   });
 
   _socket.on("connect", () => dispatch(authActions.setSocketConnected(true)));
@@ -116,7 +109,6 @@ export const disconnectSocket = () => (dispatch) => {
   dispatch(authActions.setSocketConnected(false));
 };
 
-// ─── Auth Thunks ─────────────────────────────────────────────────────────────
 export const checkAuth = () => async (dispatch) => {
   if (!localStorage.getItem("accessToken")) {
     dispatch(authActions.clearAuthState());
@@ -144,7 +136,6 @@ export const clearAuth = () => (dispatch) => {
 export const login = (credentials) => async (dispatch) => {
   const response = await axiosInstance.post("/auth/login", credentials);
   if (response.data.requiresOtp) {
-    // Unverified account — return data so UI can show OTP step
     return response.data;
   }
   localStorage.setItem("accessToken", response.data.accessToken);
@@ -154,7 +145,6 @@ export const login = (credentials) => async (dispatch) => {
 };
 
 export const register = (credentials) => async () => {
-  // Returns { requiresOtp: true } — token only issued after verifyOtp
   const response = await axiosInstance.post("/auth/register", credentials);
   return response.data;
 };
@@ -173,7 +163,7 @@ export const resendOtp = (email) => async () => {
 };
 
 export const logout = () => async (dispatch) => {
-  try { await axiosInstance.post("/auth/logout"); } catch { /* ignore */ }
+  try { await axiosInstance.post("/auth/logout"); } catch {}
   localStorage.removeItem("accessToken");
   dispatch(clearAuth());
 };
@@ -184,14 +174,12 @@ export const updateProfile = (updates) => async (dispatch) => {
   return response.data.user;
 };
 
-// ─── Chat Thunks ──────────────────────────────────────────────────────────────
 export const getUsers = () => async (dispatch) => {
   dispatch(chatActions.setChat({ isUsersLoading: true }));
   try {
     const response = await axiosInstance.get("/messages/users");
     dispatch(chatActions.setChat({ users: response.data }));
   } catch {
-    // ignore
   } finally {
     dispatch(chatActions.setChat({ isUsersLoading: false }));
   }
@@ -203,7 +191,6 @@ export const getConversations = () => async (dispatch) => {
     const response = await axiosInstance.get("/messages/conversations");
     dispatch(chatActions.setChat({ conversations: response.data }));
   } catch {
-    // ignore
   } finally {
     dispatch(chatActions.setChat({ isConversationsLoading: false }));
   }
@@ -216,7 +203,6 @@ export const getMessages = (userId) => async (dispatch) => {
     const response = await axiosInstance.get(`/messages/${userId}`);
     dispatch(chatActions.setChat({ messages: response.data }));
   } catch {
-    // ignore
   } finally {
     dispatch(chatActions.setChat({ isMessagesLoading: false }));
   }
@@ -233,7 +219,6 @@ export const sendMessage = (payload) => async (dispatch, getState) => {
     dispatch(chatActions.setChat({ isSendingMedia: true }));
   }
 
-  // ── Optimistic update (text only) ─────────────────────────────────────────
   const tempId = `temp_${Date.now()}_${Math.random()}`;
   if (!isMedia) {
     const optimistic = {
@@ -255,7 +240,6 @@ export const sendMessage = (payload) => async (dispatch, getState) => {
     if (isMedia) {
       dispatch(chatActions.appendMessage(response.data));
     } else {
-      // Swap the optimistic message with the real confirmed one
       dispatch(chatActions.replaceMessage({ tempId, message: response.data }));
     }
     dispatch(getConversations());
@@ -263,7 +247,6 @@ export const sendMessage = (payload) => async (dispatch, getState) => {
   } catch (err) {
     console.error("sendMessage failed:", err?.response?.data?.message || err.message);
     if (!isMedia) {
-      // Remove the optimistic message and restore text on failure
       dispatch(chatActions.removeMessage(tempId));
       dispatch(chatActions.setChat({ composerText }));
     }

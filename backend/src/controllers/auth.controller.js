@@ -47,11 +47,19 @@ async function issueOtp(user, res, status = 200) {
   let emailSent = false;
   if (config.BREVO_API_KEY && config.EMAIL_USER) {
     try {
-      await sendEmail({ email: user.email, subject: "Your iMessage verification code", message: html });
+      await sendEmail({
+        email: user.email,
+        subject: "Your iMessage verification code",
+        message: html,
+      });
       emailSent = true;
     } catch (err) {
       if (config.NODE_ENV === "production") {
-        return res.status(503).json({ message: "Failed to send verification email. Please try again." });
+        return res
+          .status(503)
+          .json({
+            message: "Failed to send verification email. Please try again.",
+          });
       }
       console.warn("⚠️  sendEmail failed:", err.message);
     }
@@ -66,29 +74,33 @@ async function issueOtp(user, res, status = 200) {
 
   const body = {
     requiresOtp: true,
-    message: emailSent ? "Verification code sent to your email" : "Dev mode – check server console for code",
+    message: emailSent
+      ? "Verification code sent to your email"
+      : "Dev mode – check server console for code",
   };
-  if (!emailSent) body.devOtp = otp;        // expose in dev so UI can autofill
+  if (!emailSent) body.devOtp = otp;
   return res.status(status).json(body);
 }
 
-// ── POST /api/auth/register ────────────────────────────────────────────────────
-// Creates the account then fires an OTP – user must verify before getting a token
 export const register = async (req, res) => {
   try {
     const { email, password, fullname, username } = req.body;
     if (!email || !password || !(fullname || username))
-      return res.status(400).json({ message: "Email, password and name are required" });
+      return res
+        .status(400)
+        .json({ message: "Email, password and name are required" });
     if (password.length < 6)
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
 
     const existing = await User.findOne({ email });
     if (existing) {
       if (existing.isVerified) {
-        // Fully verified account — tell them to sign in
-        return res.status(409).json({ message: "Email already in use. Please sign in instead." });
+        return res
+          .status(409)
+          .json({ message: "Email already in use. Please sign in instead." });
       }
-      // Account exists but never verified — resend OTP so they can complete registration
       return issueOtp(existing, res, 200);
     }
 
@@ -105,7 +117,6 @@ export const register = async (req, res) => {
   }
 };
 
-// ── POST /api/auth/verify-email ────────────────────────────────────────────────
 export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -114,11 +125,17 @@ export const verifyOtp = async (req, res) => {
 
     const record = await Otp.findOne({ email });
     if (!record || record.expiresAt <= new Date())
-      return res.status(400).json({ message: "Code expired – request a new one" });
+      return res
+        .status(400)
+        .json({ message: "Code expired – request a new one" });
     if (!(await bcrypt.compare(String(otp), record.otpHash)))
       return res.status(400).json({ message: "Invalid code" });
 
-    const user = await User.findByIdAndUpdate(record.user, { isVerified: true }, { new: true });
+    const user = await User.findByIdAndUpdate(
+      record.user,
+      { isVerified: true },
+      { new: true },
+    );
     await Otp.deleteMany({ email });
     const accessToken = signToken(user._id);
     setRefreshCookie(res, accessToken);
@@ -128,30 +145,29 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
-// ── POST /api/auth/sendotp  (resend) ──────────────────────────────────────────
 export const sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "No account with that email" });
+    if (!user)
+      return res.status(404).json({ message: "No account with that email" });
     return issueOtp(user, res);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// ── POST /api/auth/login ───────────────────────────────────────────────────────
-// Direct – no OTP for login
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password)
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.hashedPassword)))
       return res.status(401).json({ message: "Invalid email or password" });
 
-    // Account exists, password correct, but email never verified → resend OTP
     if (!user.isVerified) {
       return issueOtp(user, res, 200);
     }
@@ -172,13 +188,21 @@ export const logout = (_req, res) => {
 };
 
 export const refreshToken = (req, res) => {
-  if (!req.cookies?.refreshToken)
+  const token = req.cookies?.refreshToken;
+  if (!token)
     return res.status(401).json({ message: "Refresh token not found" });
-  res.json({ accessToken: req.cookies.refreshToken });
+  try {
+    const decoded = jwt.verify(token, config.JWT_SECRET);
+    const accessToken = signToken(decoded.id);
+    setRefreshCookie(res, accessToken); // rotate the cookie too
+    return res.json({ accessToken });
+  } catch {
+    return res
+      .status(401)
+      .json({ message: "Refresh token invalid or expired" });
+  }
 };
 
-// ── PATCH /api/auth/profile ────────────────────────────────────────────────────
-// Accepts base64 profilePic in JSON body OR multipart file (Cloudinary fallback)
 export const updateProfile = async (req, res) => {
   try {
     const { fullname, profilePic } = req.body;
@@ -187,10 +211,12 @@ export const updateProfile = async (req, res) => {
 
     const updates = {};
     if (fullname?.trim()) updates.fullname = fullname.trim();
-    if (profilePic !== undefined) updates.profilePic = profilePic;   // base64 data-URL
+    if (profilePic !== undefined) updates.profilePic = profilePic; // base64 data-URL
     if (req.file) {
       if (!hasCloudinaryConfig())
-        return res.status(503).json({ message: "Profile image uploads not configured" });
+        return res
+          .status(503)
+          .json({ message: "Profile image uploads not configured" });
       updates.profilePic = await uploadChatMedia(req.file);
     }
 

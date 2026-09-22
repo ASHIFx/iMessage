@@ -63,8 +63,6 @@ const facade = (chatState, dispatch) => ({
   },
 });
 
-// Use shallowEqual + subscribe to only chat slice — fixes the
-// "Selector returned the root state" warning from react-redux.
 export const useChatStore = (selector = (s) => s) => {
   const chatState = useSelector((s) => s.chat, shallowEqual);
   const dispatch = useDispatch();

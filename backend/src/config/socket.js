@@ -2,6 +2,9 @@ import express from "express";
 import http from "http";
 import { config } from "../config/config.js";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
+import { config } from "../config/config.js";
+
 
 const app = express();
 const server = http.createServer(app);
@@ -31,12 +34,19 @@ function getReceiverSocketId(userId){
     return userSocketMap[userId];
 }
 
-//online user map = {userId: socketId}
 const userSocketMap = {};
-
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (!token) return next(new Error("Unauthorized"));
+  try {
+    socket.userId = jwt.verify(token, config.JWT_SECRET).id;
+    next();
+  } catch {
+    next(new Error("Unauthorized"));
+  }
+});
 io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId;
-
+  const userId = socket.userId;
   if(userId) userSocketMap[userId] = socket.id
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap))

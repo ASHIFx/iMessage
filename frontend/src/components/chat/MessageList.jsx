@@ -4,7 +4,6 @@ import { NoConversationPlaceholder } from "./NoConversationPlaceholder";
 import { useSelectedConversation } from "../../hooks/useSelectedConversation";
 import { useChatStore } from "../../store/useChatStore";
 
-// Skeleton row — shown while loading messages
 function SkeletonBubble({ own }) {
   return (
     <div className={`flex w-full ${own ? "justify-end" : "justify-start"}`}>
@@ -38,10 +37,8 @@ export function MessageList() {
     prevIdRef.current = activeConversationId;
 
     if (conversationChanged) {
-      // Instant jump when switching conversations
       bottomRef.current.scrollIntoView({ behavior: "instant" });
     } else {
-      // Smooth scroll for new incoming/outgoing messages
       bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
   }, [activeConversationId, messageCount]);
@@ -58,7 +55,6 @@ export function MessageList() {
           </p>
 
           {isMessagesLoading ? (
-            // Skeleton placeholders while loading
             SKELETON_PATTERN.map((own, i) => (
               <SkeletonBubble key={i} own={Boolean(own)} />
             ))
@@ -67,13 +63,11 @@ export function MessageList() {
               <MessageBubble
                 key={message._id || message.id}
                 message={message}
-                // Only animate the very last messages so load doesn't animate everything
                 isNew={i >= messages.length - 2}
               />
             ))
           )}
 
-          {/* Invisible anchor to scroll to */}
           <div ref={bottomRef} className="h-0 w-full shrink-0" aria-hidden />
         </div>
       ) : (

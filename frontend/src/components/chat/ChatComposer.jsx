@@ -14,7 +14,6 @@ export function ChatComposer() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const mediaInputRef = useRef(null);
 
-  // Spam prevention — 500ms cooldown between sends
   const sendingRef = useRef(false);
   const [sendDisabled, setSendDisabled] = useState(false);
 
@@ -28,7 +27,6 @@ export function ChatComposer() {
     setSendDisabled(true);
     const ok = await sendTextMessage();
     if (ok) maybePlaySound();
-    // Re-enable after 500ms
     setTimeout(() => {
       sendingRef.current = false;
       setSendDisabled(false);
@@ -36,7 +34,6 @@ export function ChatComposer() {
   };
 
   const handleTextChange = (value) => {
-    // HeroUI TextArea passes the value string directly, not a DOM event
     const text = typeof value === "string" ? value : (value?.target?.value ?? "");
     setComposerText(text);
     maybePlaySound();
@@ -44,13 +41,9 @@ export function ChatComposer() {
 
   const handleMediaPick = async (event) => {
     const file = event.target.files?.[0];
-    // Reset input so the same file can be picked again
     event.target.value = "";
     if (!file) return;
 
-    // Convert file to base64 data-URL on the frontend.
-    // This avoids needing Cloudinary — the URL is stored directly in MongoDB.
-    // Max safe size: ~5 MB compressed (MongoDB document limit is 16 MB).
     const MAX_BYTES = 5 * 1024 * 1024;
     if (file.size > MAX_BYTES) {
       alert("File too large. Please pick something under 5 MB.");

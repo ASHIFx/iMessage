@@ -66,8 +66,6 @@ export const sendMessage = async (req, res) => {
     let imageUrl = image || null;   // base64 data-URL from frontend
     let videoUrl = video || null;   // base64 data-URL from frontend
 
-    // Fallback: if file was sent via multipart/form-data (e.g. future native apps)
-    // and Cloudinary is configured, upload it
     if (req.file && !imageUrl && !videoUrl) {
       if (!hasCloudinaryConfig()) {
         return res.status(500).json({ message: "Media upload is not configured" });

@@ -1,4 +1,3 @@
-/** HeroUI-style accent presets (Theme Builder palette). IDs match `data-theme-preset` in CSS. */
 export const HERO_UI_THEME_PRESETS = [
   {
     id: "default",

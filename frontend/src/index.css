@@ -2,8 +2,6 @@
 @import "@heroui/styles";
 @import "./styles/heroui-theme-presets.css";
 
-/* HeroUI's dark fallback uses prefers-color-scheme but forgot [data-theme="light"], so OS dark +
-   app light still applied dark: utilities. Re-define so explicit light theme wins system dark. */
 @custom-variant dark {
   &:is(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *) {
     @slot;
@@ -55,7 +53,6 @@
   }
 }
 
-/* ── Message bubble pop-in ── */
 @keyframes msg-in {
   from {
     opacity: 0;
@@ -71,12 +68,10 @@
   animation: msg-in 0.18s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
-/* Optimistic (pending) message — slightly faded */
 .msg-pending {
   opacity: 0.65;
 }
 
-/* ── Skeleton shimmer ── */
 @keyframes skeleton-sweep {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
@@ -94,7 +89,6 @@
   border-radius: 0.5rem;
 }
 
-/* ── Smooth scrollbar ── */
 .messages-scroll {
   scroll-behavior: smooth;
   scrollbar-width: thin;

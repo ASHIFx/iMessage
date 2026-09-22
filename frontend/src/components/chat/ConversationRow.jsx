@@ -30,7 +30,6 @@ export function ConversationRow({ user, selected, onSelect }) {
         </p>
       </div>
 
-      {/* Subtle selected indicator */}
       {selected && (
         <div className="size-2 shrink-0 rounded-full bg-accent" aria-hidden />
       )}

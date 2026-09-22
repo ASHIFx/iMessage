@@ -14,7 +14,6 @@ export function MessageBubble({ message, isNew }) {
       className={[
         "flex w-full",
         isOwnMessage ? "justify-end" : "justify-start",
-        // Only animate genuinely new messages (last ~2) to avoid animating history on load
         isNew ? "msg-bubble" : "",
       ].join(" ")}
     >

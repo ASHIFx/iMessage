@@ -31,17 +31,14 @@ export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => readStoredTheme() ?? getSystemTheme());
   const [themePreset, setThemePresetState] = useState(readStoredThemePreset);
 
-  // this applies light/dark mode
   useLayoutEffect(() => {
     applyDomTheme(theme);
   }, [theme]);
 
-  // this applies the theme preset, like sky, spotify, etc.
   useLayoutEffect(() => {
     applyThemePresetToDocument(themePreset);
   }, [themePreset]);
 
-  // this stores the theme and theme preset in local storage
   useEffect(() => {
     localStorage.setItem("theme", theme);
     localStorage.setItem("theme-preset", themePreset);
