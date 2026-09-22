@@ -1,5 +1,5 @@
 import { Button } from "@heroui/react";
-import { ArrowRightIcon, MailIcon, RefreshCwIcon, ShieldCheckIcon } from "lucide-react";
+import { ArrowRightIcon, EyeIcon, EyeOffIcon, MailIcon, RefreshCwIcon, ShieldCheckIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../store/useAuthStore";
@@ -28,6 +28,7 @@ export function AuthActionPanel() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [devOtp, setDevOtp] = useState("");            // autofill in dev
   const [resendCooldown, setResendCooldown] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -136,7 +137,7 @@ export function AuthActionPanel() {
 
             {/* OTP boxes */}
             <div className="flex justify-center gap-2">
-              {[0,1,2,3,4,5].map((i) => (
+              {[0, 1, 2, 3, 4, 5].map((i) => (
                 <input
                   key={i}
                   type="text"
@@ -192,7 +193,7 @@ export function AuthActionPanel() {
             </div>
           </form>
         ) : (
-        /* ── Login / Register form ──────────────────────────────────────────── */
+          /* ── Login / Register form ──────────────────────────────────────────── */
           <form className="space-y-3" onSubmit={handleForm}>
             <p className="text-center text-sm font-semibold text-foreground">
               {mode === "login" ? "Sign in to iMessage" : "Create your account"}
@@ -204,10 +205,18 @@ export function AuthActionPanel() {
             )}
             <input className={inputCls} type="email" placeholder="Email address" value={email}
               onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
-            <input className={inputCls} type="password" placeholder="Password (min 6 chars)" value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required />
-
+            <div className="relative">
+              <input className={`${inputCls} pr-11`} type={showPassword ? "text" : "password"}
+                placeholder="Password (min 6 chars)" value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required />
+              <button type="button" tabIndex={-1}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}>
+                {showPassword ? <EyeOffIcon className="size-4.5" /> : <EyeIcon className="size-4.5" />}
+              </button>
+            </div>
             <Button fullWidth size="lg" variant="primary" className={btnCls} type="submit" isDisabled={busy}>
               <span className="relative z-1 flex items-center justify-center gap-2">
                 {busy ? "Please wait…" : mode === "login" ? "Sign in" : "Continue"}

@@ -7,7 +7,7 @@ export const sendEmail = async ({ email, subject, message }) => {
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          name: "Asif",
+          name: "iMessage",
           email: config.EMAIL_USER,
         },
         to: [{ email }],
