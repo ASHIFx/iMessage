@@ -14,7 +14,7 @@ import { app, server } from "./config/socket.js";
 const PORT = config.PORT;
 const publicDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public");
 
-app.use(express.json({ limit: "200mb" }));
+app.use(express.json({ limit: "12mb" }));
 app.use(cookieParser());
 app.use(
   cors({
