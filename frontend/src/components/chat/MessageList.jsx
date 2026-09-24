@@ -4,14 +4,14 @@ import { NoConversationPlaceholder } from "./NoConversationPlaceholder";
 import { useSelectedConversation } from "../../hooks/useSelectedConversation";
 import { useChatStore } from "../../store/useChatStore";
 
-function SkeletonBubble({ own }) {
+function SkeletonBubble({ own, width }) {
   return (
     <div className={`flex w-full ${own ? "justify-end" : "justify-start"}`}>
       <div
         className={`skeleton h-9 rounded-2xl ${
           own ? "rounded-br-md" : "rounded-bl-md"
         }`}
-        style={{ width: `${Math.random() * 90 + 80}px` }}
+        style={{ width: `${width}px` }}
         aria-hidden
       />
     </div>
@@ -19,6 +19,7 @@ function SkeletonBubble({ own }) {
 }
 
 const SKELETON_PATTERN = [0, 1, 0, 0, 1, 0, 1, 1]; // 0=other, 1=own
+const SKELETON_WIDTHS = [132, 176, 108, 154, 124, 188, 142, 116];
 
 export function MessageList() {
   const { activeConversation, activeConversationId } = useSelectedConversation();
@@ -56,7 +57,11 @@ export function MessageList() {
 
           {isMessagesLoading ? (
             SKELETON_PATTERN.map((own, i) => (
-              <SkeletonBubble key={i} own={Boolean(own)} />
+              <SkeletonBubble
+                key={i}
+                own={Boolean(own)}
+                width={SKELETON_WIDTHS[i]}
+              />
             ))
           ) : (
             messages.map((message, i) => (

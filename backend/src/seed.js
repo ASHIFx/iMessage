@@ -52,7 +52,7 @@ async function seed() {
         },
         $setOnInsert: { hashedPassword },
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
     );
     users[demoUser.email] = user;
   }

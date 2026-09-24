@@ -120,7 +120,8 @@ export const checkAuth = () => async (dispatch) => {
     const user = response.data.user || response.data;
     dispatch(authActions.setAuthUser(user));
     dispatch(connectSocket(user));
-  } catch {
+  } catch (error) {
+    console.error("Authentication check failed:", error);
     localStorage.removeItem("accessToken");
     dispatch(authActions.clearAuthState());
   } finally {
@@ -163,7 +164,11 @@ export const resendOtp = (email) => async () => {
 };
 
 export const logout = () => async (dispatch) => {
-  try { await axiosInstance.post("/auth/logout"); } catch {}
+  try {
+    await axiosInstance.post("/auth/logout");
+  } catch (error) {
+    console.error("Logout request failed:", error);
+  }
   localStorage.removeItem("accessToken");
   dispatch(clearAuth());
 };
@@ -179,7 +184,8 @@ export const getUsers = () => async (dispatch) => {
   try {
     const response = await axiosInstance.get("/messages/users");
     dispatch(chatActions.setChat({ users: response.data }));
-  } catch {
+  } catch (error) {
+    console.error("Loading users failed:", error);
   } finally {
     dispatch(chatActions.setChat({ isUsersLoading: false }));
   }
@@ -190,7 +196,8 @@ export const getConversations = () => async (dispatch) => {
   try {
     const response = await axiosInstance.get("/messages/conversations");
     dispatch(chatActions.setChat({ conversations: response.data }));
-  } catch {
+  } catch (error) {
+    console.error("Loading conversations failed:", error);
   } finally {
     dispatch(chatActions.setChat({ isConversationsLoading: false }));
   }
@@ -202,7 +209,8 @@ export const getMessages = (userId) => async (dispatch) => {
   try {
     const response = await axiosInstance.get(`/messages/${userId}`);
     dispatch(chatActions.setChat({ messages: response.data }));
-  } catch {
+  } catch (error) {
+    console.error("Loading messages failed:", error);
   } finally {
     dispatch(chatActions.setChat({ isMessagesLoading: false }));
   }
