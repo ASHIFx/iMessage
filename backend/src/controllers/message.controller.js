@@ -1,7 +1,7 @@
 import { getReceiverSocketId, io } from "../config/socket.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
-import { hasCloudinaryConfig, uploadChatMedia } from "../config/cloudinary.js";
+import { hasImageKitConfig, uploadChatMedia } from "../config/imagekit.js";
 
 export const getUserForSidebar = async (req, res) => {
   try {
@@ -63,11 +63,11 @@ export const sendMessage = async (req, res) => {
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
 
-    let imageUrl = image || null;   // base64 data-URL from frontend
-    let videoUrl = video || null;   // base64 data-URL from frontend
+    let imageUrl = image || null;
+    let videoUrl = video || null;
 
     if (req.file && !imageUrl && !videoUrl) {
-      if (!hasCloudinaryConfig()) {
+      if (!hasImageKitConfig()) {
         return res.status(500).json({ message: "Media upload is not configured" });
       }
       const url = await uploadChatMedia(req.file);

@@ -1,90 +1,60 @@
 # iMessage
 
-A full-stack real-time messaging application built with React, Express, MongoDB, and Socket.IO.
-
-## Features
-
-- Email/password registration with email OTP verification
-- JWT authentication with refresh cookies
-- Direct messaging with real-time Socket.IO updates
-- Online user status and conversation history
-- Image and video messages
-- Profile editing with avatar support
-- Light and dark themes with selectable accent presets
-- Responsive interface for desktop and mobile screens
+A real-time messaging app built with React, Express, MongoDB, and Socket.IO.
 
 ## Stack
 
-- Frontend: React 19, Vite, Redux Toolkit, HeroUI, Tailwind CSS
-- Backend: Node.js, Express 5, Mongoose, Socket.IO
-- Services: MongoDB, Cloudinary, Brevo email API
-- Deployment: Docker
+- Frontend: React, Vite, HeroUI, Tailwind CSS
+- Backend: Node.js, Express, Mongoose, Socket.IO
+- Media: ImageKit
+- Email: Brevo
 
-## Requirements
+## Features
 
-- Node.js 22 or newer
-- MongoDB
-- npm
-- Optional: Cloudinary and Brevo accounts for media uploads and email delivery
+- Email sign up and OTP verification
+- JWT auth with refresh cookies
+- Direct messaging with live updates
+- Image and video messages
+- Profile avatar support
+- Light and dark themes
 
-## Local Setup
+## Setup
 
 1. Install dependencies:
 
-   ```bash
-   npm install
-   npm --prefix backend install
-   npm --prefix frontend install
-   ```
+```bash
+npm install
+npm --prefix backend install
+npm --prefix frontend install
+```
 
-2. Copy `.env.example` to `.env` and add the required values.
+2. Copy `.env.example` to `.env` and add your values.
 
-3. Start the frontend and backend together:
+3. Start the app:
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
-   The frontend runs on `http://localhost:5173` and the API runs on `http://localhost:3000`.
+The frontend runs at `http://localhost:5173` and the backend at `http://localhost:3000`.
 
-4. Seed sample users when needed:
+## Environment
 
-   ```bash
-   npm run seed --prefix backend
-   ```
+Use the root `.env` file for backend config. Add your ImageKit and Brevo keys in `.env`.
 
-## Environment Variables
+```bash
+IMAGEKIT_PUBLIC_KEY=
+IMAGEKIT_PRIVATE_KEY=
+IMAGEKIT_URL_ENDPOINT=
+EMAIL_USER=
+BREVO_API_KEY=
+```
 
-The backend reads its variables from the root `.env` file. The frontend uses Vite variables when a custom API or Socket.IO URL is needed. See `.env.example` for the complete list.
-
-For local development, email delivery can be omitted. The verification code is returned in the API response and printed by the backend in development mode.
-
-## Production Build
-
-Build the frontend, copy the generated assets into the backend public directory, and build the backend bundle:
+## Production
 
 ```bash
 npm run build
 npm start
 ```
 
-The included Dockerfile performs the same build in a multi-stage image:
-
-```bash
-docker build -t imessage .
-docker run --env-file .env -p 3001:3001 imessage
-```
-
-## Project Structure
-
-```text
-backend/     Express API, authentication, messages, Socket.IO, database models
-frontend/    React and Vite client
-Dockerfile   Multi-stage production image
-```
-
-## Notes
-
-- Do not commit `.env` or production credentials.
-- The default development database is `mongodb://127.0.0.1:27017/imessage`.
-- The production server serves the built frontend from `backend/public`.
+The app serves the built frontend from `backend/public`.

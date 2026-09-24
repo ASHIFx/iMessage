@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 import Otp from "../models/otp.model.js";
 import { config } from "../config/config.js";
 import { sendEmail } from "../utils/sendEmail.js";
-import { hasCloudinaryConfig, uploadChatMedia } from "../config/cloudinary.js";
+import { hasImageKitConfig, uploadChatMedia } from "../config/imagekit.js";
 
 const publicUser = (user) => ({
   _id: user._id,
@@ -61,7 +61,7 @@ async function issueOtp(user, res, status = 200) {
             message: "Failed to send verification email. Please try again.",
           });
       }
-      console.warn("⚠️  sendEmail failed:", err.message);
+      console.warn("sendEmail failed:", err.message);
     }
   }
 
@@ -69,7 +69,7 @@ async function issueOtp(user, res, status = 200) {
     if (config.NODE_ENV === "production") {
       return res.status(503).json({ message: "Email service not configured." });
     }
-    console.log(`\n🔑  Dev OTP for ${user.email}: ${otp}\n`);
+    console.log(`Dev OTP for ${user.email}: ${otp}`);
   }
 
   const body = {
@@ -194,7 +194,7 @@ export const refreshToken = (req, res) => {
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET);
     const accessToken = signToken(decoded.id);
-    setRefreshCookie(res, accessToken); // rotate the cookie too
+    setRefreshCookie(res, accessToken);
     return res.json({ accessToken });
   } catch {
     return res
@@ -211,9 +211,9 @@ export const updateProfile = async (req, res) => {
 
     const updates = {};
     if (fullname?.trim()) updates.fullname = fullname.trim();
-    if (profilePic !== undefined) updates.profilePic = profilePic; // base64 data-URL
+    if (profilePic !== undefined) updates.profilePic = profilePic;
     if (req.file) {
-      if (!hasCloudinaryConfig())
+      if (!hasImageKitConfig())
         return res
           .status(503)
           .json({ message: "Profile image uploads not configured" });

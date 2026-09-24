@@ -3,7 +3,6 @@ import http from "http";
 import { config } from "../config/config.js";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import { config } from "../config/config.js";
 
 
 const app = express();
