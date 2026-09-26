@@ -38,7 +38,7 @@ Use this account to try the app:
 
 The seed script also replaces messages involving the demo accounts, so use a test database.
 
-## Setup
+## Local Development
 
 1. Install dependencies:
 
@@ -56,7 +56,7 @@ npm --prefix frontend install
 npm run dev
 ```
 
-The frontend runs at `http://localhost:5173` and the backend at `http://localhost:3000`.
+In development, Vite serves the frontend at `http://localhost:5173`, while Express and Socket.IO run at `http://localhost:3000`. These are local development addresses only. In production, the monolith serves the frontend, API, and Socket.IO from the same service URL.
 
 ## Environment
 
@@ -99,7 +99,7 @@ BREVO_API_KEY=
 
 Use the actual Render URL for `FRONTEND_URL`. Keep `VITE_API_URL` unset for this same-origin deployment; the frontend uses `/api` by default.
 
-### Build and Run Locally
+### Build and Run the Production Version Locally
 
 ```bash
 npm run build
